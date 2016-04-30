@@ -144,18 +144,18 @@ public class CurrentStock extends Fragment {
             if (view == null) {
                 LayoutInflater inflater = getActivity().getLayoutInflater();
                 view = inflater.inflate(R.layout.quotedetails, viewGroup, false);
-            }
-            TextView thead = (TextView) view.findViewById(R.id.thead);
-            thead.setText(theads[i]);
-            TextView content = (TextView) view.findViewById(R.id.content);
-            content.setText(contents.get(i));
-            if (i == 3 || i == 7) {
-                ImageView arrow = (ImageView) view.findViewById(R.id.arrow);
-                String arrowname = contents.get(11 + i / 4);
-                if (arrowname.equals("up")) {
-                    arrow.setImageResource(R.drawable.up);
-                } else if (arrowname.equals("down")) {
-                    arrow.setImageResource(R.drawable.down);
+                TextView thead = (TextView) view.findViewById(R.id.thead);
+                thead.setText(theads[i]);
+                TextView content = (TextView) view.findViewById(R.id.content);
+                content.setText(contents.get(i));
+                if (i == 3 || i == 7) {
+                    ImageView arrow = (ImageView) view.findViewById(R.id.arrow);
+                    String arrowname = contents.get(11 + i / 4);
+                    if (arrowname.equals("up")) {
+                        arrow.setImageResource(R.drawable.up);
+                    } else if (arrowname.equals("down")) {
+                        arrow.setImageResource(R.drawable.down);
+                    }
                 }
             }
             return view;

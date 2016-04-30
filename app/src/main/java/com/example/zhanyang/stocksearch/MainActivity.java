@@ -179,11 +179,11 @@ public class MainActivity extends AppCompatActivity {
                 LayoutInflater inflater = (LayoutInflater) getBaseContext()
                         .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 view = inflater.inflate(R.layout.dropdown_item, viewGroup, false);
+                TextView symboltv = (TextView) view.findViewById(R.id.symbol);
+                symboltv.setText(getItem(i).symbol);
+                TextView desctv = (TextView) view.findViewById(R.id.desc);
+                desctv.setText(getItem(i).description);
             }
-            TextView symboltv = (TextView) view.findViewById(R.id.symbol);
-            symboltv.setText(getItem(i).symbol);
-            TextView desctv = (TextView) view.findViewById(R.id.desc);
-            desctv.setText(getItem(i).description);
             return view;
         }
 
@@ -316,39 +316,39 @@ public class MainActivity extends AppCompatActivity {
                 LayoutInflater inflater = (LayoutInflater) getBaseContext()
                         .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 view = inflater.inflate(R.layout.favoritelist, viewGroup, false);
-            }
-            try {
-                JSONObject jsonobj = new JSONObject(result.get(i));
-                if (jsonobj.getString("Status").equals("SUCCESS")) {
-                    TextView symboltv = (TextView) view.findViewById(R.id.symbol);
-                    symboltv.setText(jsonobj.getString("Symbol"));
-                    TextView nametv = (TextView) view.findViewById(R.id.name);
-                    nametv.setText(jsonobj.getString("Name"));
-                    TextView pricetv = (TextView) view.findViewById(R.id.price);
-                    pricetv.setText("$" + jsonobj.getString("LastPrice"));
-                    TextView percenttv = (TextView) view.findViewById(R.id.percent);
-                    Double d = Double.valueOf(jsonobj.getString("ChangePercent"));
-                    if (d > 0) {
-                        percenttv.setBackgroundColor(Color.GREEN);
-                        percenttv.setText("+" + String.format("%.2f", d) + "%");
-                    } else if (d < 0) {
-                        percenttv.setBackgroundColor(Color.RED);
-                        percenttv.setText(String.format("%.2f", d) + "%");
+                try {
+                    JSONObject jsonobj = new JSONObject(result.get(i));
+                    if (jsonobj.getString("Status").equals("SUCCESS")) {
+                        TextView symboltv = (TextView) view.findViewById(R.id.symbol);
+                        symboltv.setText(jsonobj.getString("Symbol"));
+                        TextView nametv = (TextView) view.findViewById(R.id.name);
+                        nametv.setText(jsonobj.getString("Name"));
+                        TextView pricetv = (TextView) view.findViewById(R.id.price);
+                        pricetv.setText("$" + jsonobj.getString("LastPrice"));
+                        TextView percenttv = (TextView) view.findViewById(R.id.percent);
+                        Double d = Double.valueOf(jsonobj.getString("ChangePercent"));
+                        if (d > 0) {
+                            percenttv.setBackgroundColor(Color.GREEN);
+                            percenttv.setText("+" + String.format("%.2f", d) + "%");
+                        } else if (d < 0) {
+                            percenttv.setBackgroundColor(Color.RED);
+                            percenttv.setText(String.format("%.2f", d) + "%");
+                        }
+                        TextView markettv = (TextView) view.findViewById(R.id.marketcap);
+                        Double d2 = Double.valueOf(jsonobj.getString("MarketCap"));
+                        if (d2 >= 1000000000) {
+                            markettv.setText("Market Cap: " + String.format("%.2f", d2 / 1000000000) + " Billion");
+                        } else if (d2 >= 1000000) {
+                            markettv.setText("Market Cap: " + String.format("%.2f", d2 / 1000000) + " Million");
+                        } else {
+                            markettv.setText("Market Cap: " + d2);
+                        }
                     }
-                    TextView markettv = (TextView) view.findViewById(R.id.marketcap);
-                    Double d2 = Double.valueOf(jsonobj.getString("MarketCap"));
-                    if (d2 >= 1000000000) {
-                        markettv.setText("Market Cap: " + String.format("%.2f", d2 / 1000000000) + " Billion");
-                    } else if (d2 >= 1000000) {
-                        markettv.setText("Market Cap: " + String.format("%.2f", d2 / 1000000) + " Million");
-                    } else {
-                        markettv.setText("Market Cap: " + d2);
-                    }
-                }
 
-            } catch (JSONException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
             return view;
         }
