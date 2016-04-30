@@ -2,7 +2,6 @@ package com.example.zhanyang.stocksearch;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -36,14 +35,12 @@ public class CurrentStock extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_current_stock, container, false);
         ListView stockdetail = (ListView) v.findViewById(R.id.stockdetail);
-//        View footer = View.inflate(getContext(), R.layout.listviewfooter, null);
-//        stockdetail.addFooterView(footer);
+        View footer = View.inflate(getContext(), R.layout.listviewfooter, null);
+        stockdetail.addFooterView(footer);
         Bundle data = getArguments();
         String symbol = data.getString("symbol");
         new QuotesTask(stockdetail).execute(symbol);
-//        new PictureTask(footer, stockdetail).execute(symbol);
-        ImageView yahoochart = (ImageView) v.findViewById(R.id.yahoochart);
-        new PictureTask(yahoochart).execute(symbol);
+        new PictureTask(footer, stockdetail).execute(symbol);
         return v;
     }
 
@@ -166,16 +163,12 @@ public class CurrentStock extends Fragment {
     }
 
     private class PictureTask extends AsyncTask<String, Void, Bitmap> {
-//        View footer;
-//        ListView lv;
-//
-//        public PictureTask(View footer, ListView lv) {
-//            this.footer = footer;
-//            this.lv = lv;
-//        }
-        ImageView image;
-        public PictureTask(ImageView image){
-            this.image = image;
+        View footer;
+        ListView lv;
+
+        public PictureTask(View footer, ListView lv) {
+            this.footer = footer;
+            this.lv = lv;
         }
 
         @Override
@@ -199,10 +192,10 @@ public class CurrentStock extends Fragment {
 
         @Override
         protected void onPostExecute(Bitmap pic) {
-            Log.e("If pic is null", String.valueOf(pic == null));
-//            ImageView image = (ImageView) footer.findViewById(R.id.yahoochart);
+            ImageView image = (ImageView) footer.findViewById(R.id.yahoochart);
             image.setImageBitmap(pic);
-            PhotoViewAttacher mAttacher = new PhotoViewAttacher(image);
+//            PhotoViewAttacher mAttacher = new PhotoViewAttacher(image);
+//            mAttacher.update();
         }
     }
 }
