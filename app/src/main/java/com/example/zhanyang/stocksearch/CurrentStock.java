@@ -24,6 +24,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.co.senab.photoview.PhotoView;
 import uk.co.senab.photoview.PhotoViewAttacher;
 
 
@@ -192,10 +193,10 @@ public class CurrentStock extends Fragment {
 
         @Override
         protected void onPostExecute(Bitmap pic) {
-            ImageView image = (ImageView) footer.findViewById(R.id.yahoochart);
+            PhotoView image = (PhotoView) footer.findViewById(R.id.yahoochart);
             image.setImageBitmap(pic);
-//            PhotoViewAttacher mAttacher = new PhotoViewAttacher(image);
-//            mAttacher.update();
+            PhotoViewAttacher mAttacher = new PhotoViewAttacher(image);
+            mAttacher.update();
         }
     }
 }
