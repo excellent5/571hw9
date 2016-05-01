@@ -87,24 +87,24 @@ public class News extends Fragment {
             if (view == null) {
                 LayoutInflater inflater = getActivity().getLayoutInflater();
                 view = inflater.inflate(R.layout.newsdetails, viewGroup, false);
-                try{
-                    TextView title = (TextView) view.findViewById(R.id.newstitle);
-                    title.setMovementMethod(LinkMovementMethod.getInstance());
-                    String titlestring = contents.getJSONObject(i).getString("Title");
-                    String url = contents.getJSONObject(i).getString("Url");
-                    String html = String.format("<a href = \"%s\"><u><font color = \"black\">%s</font></u></a>", url, titlestring);
-                    title.setText(Html.fromHtml(html));
-                    title.setTextColor(Color.BLACK);
-                    TextView content = (TextView) view.findViewById(R.id.newscontent);
-                    content.setText(contents.getJSONObject(i).getString("Description"));
-                    TextView publisher = (TextView) view.findViewById(R.id.publisher);
-                    publisher.setText(contents.getJSONObject(i).getString("Source"));
-                    TextView date = (TextView) view.findViewById(R.id.date);
-                    date.setText(contents.getJSONObject(i).getString("Date"));
-                }
-                catch (JSONException e){
-                    e.printStackTrace();
-                }
+            }
+            try{
+                TextView title = (TextView) view.findViewById(R.id.newstitle);
+                title.setMovementMethod(LinkMovementMethod.getInstance());
+                String titlestring = contents.getJSONObject(i).getString("Title");
+                String url = contents.getJSONObject(i).getString("Url");
+                String html = String.format("<a href = \"%s\"><u><font color = \"black\">%s</font></u></a>", url, titlestring);
+                title.setText(Html.fromHtml(html));
+                title.setTextColor(Color.BLACK);
+                TextView content = (TextView) view.findViewById(R.id.newscontent);
+                content.setText(contents.getJSONObject(i).getString("Description"));
+                TextView publisher = (TextView) view.findViewById(R.id.publisher);
+                publisher.setText(contents.getJSONObject(i).getString("Source"));
+                TextView date = (TextView) view.findViewById(R.id.date);
+                date.setText(contents.getJSONObject(i).getString("Date"));
+            }
+            catch (JSONException e){
+                e.printStackTrace();
             }
             return view;
         }

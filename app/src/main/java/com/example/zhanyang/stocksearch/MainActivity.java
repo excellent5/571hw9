@@ -58,8 +58,9 @@ public class MainActivity extends AppCompatActivity {
         favoritelist.enableSwipeToDismiss(new OnDismissCallback() {
             @Override
             public void onDismiss(@NonNull ViewGroup listView, @NonNull int[] reverseSortedPositions) {
+                FavoriteListAdapter fladapter = (FavoriteListAdapter) favoritelist.getAdapter();
                 for (int position : reverseSortedPositions) {
-                    Log.e("Removed position: ", String.valueOf(position));
+                    fladapter.remove(position);
                 }
             }
         });
@@ -126,8 +127,8 @@ public class MainActivity extends AppCompatActivity {
 //        SharedPreferences prefs = getSharedPreferences("favoritelist", MODE_PRIVATE);
 //        Set<String> symbols = prefs.getStringSet("symbol", null);
         Set<String> symbols = new LinkedHashSet<>();
-//        symbols.add("AAPL");
-//        symbols.add("FB");
+        symbols.add("AAPL");
+        symbols.add("FB");
         return symbols;
     }
 
@@ -284,6 +285,30 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public class RemoveFavoriteListener implements DialogInterface.OnClickListener {
+        String name;
+        String symbol;
+        int position;
+        FavoriteListAdapter adapter;
+        List<String> result;
+
+        public RemoveFavoriteListener(String name, String symbol, int position, FavoriteListAdapter adapter, List<String> result){
+            this.name = name;
+            this.symbol = symbol;
+            this.position = position;
+            this.adapter = adapter;
+            this.result = result;
+        }
+
+        @Override
+        public void onClick(DialogInterface dialogInterface, int i) {
+            getFavoriteSymbols().remove(symbol);
+            result.remove(position);
+            adapter.notifyDataSetChanged();
+            dialogInterface.cancel();
+        }
+    }
+
     public class FavoriteListAdapter extends BaseAdapter {
         List<String> result;
 
@@ -291,8 +316,26 @@ public class MainActivity extends AppCompatActivity {
             this.result = result;
         }
 
-        public List<String> getAdapterData() {
-            return result;
+        public void remove(final int position){
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            String name = "Unknown";
+            String symbol = "";
+            try {
+                JSONObject jsonobj = new JSONObject(result.get(position));
+                name = jsonobj.getString("Name");
+                symbol = jsonobj.getString("Symbol");
+            }
+            catch (JSONException e){
+                e.printStackTrace();
+            }
+            builder.setMessage("Want to delete " + name + " from favorites?");
+            builder.setPositiveButton("OK", new RemoveFavoriteListener(name, symbol, position, this, result))
+            .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.cancel();
+                }
+            });
+            builder.create().show();
         }
 
         @Override
@@ -316,39 +359,39 @@ public class MainActivity extends AppCompatActivity {
                 LayoutInflater inflater = (LayoutInflater) getBaseContext()
                         .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 view = inflater.inflate(R.layout.favoritelist, viewGroup, false);
-                try {
-                    JSONObject jsonobj = new JSONObject(result.get(i));
-                    if (jsonobj.getString("Status").equals("SUCCESS")) {
-                        TextView symboltv = (TextView) view.findViewById(R.id.symbol);
-                        symboltv.setText(jsonobj.getString("Symbol"));
-                        TextView nametv = (TextView) view.findViewById(R.id.name);
-                        nametv.setText(jsonobj.getString("Name"));
-                        TextView pricetv = (TextView) view.findViewById(R.id.price);
-                        pricetv.setText("$" + jsonobj.getString("LastPrice"));
-                        TextView percenttv = (TextView) view.findViewById(R.id.percent);
-                        Double d = Double.valueOf(jsonobj.getString("ChangePercent"));
-                        if (d > 0) {
-                            percenttv.setBackgroundColor(Color.GREEN);
-                            percenttv.setText("+" + String.format("%.2f", d) + "%");
-                        } else if (d < 0) {
-                            percenttv.setBackgroundColor(Color.RED);
-                            percenttv.setText(String.format("%.2f", d) + "%");
-                        }
-                        TextView markettv = (TextView) view.findViewById(R.id.marketcap);
-                        Double d2 = Double.valueOf(jsonobj.getString("MarketCap"));
-                        if (d2 >= 1000000000) {
-                            markettv.setText("Market Cap: " + String.format("%.2f", d2 / 1000000000) + " Billion");
-                        } else if (d2 >= 1000000) {
-                            markettv.setText("Market Cap: " + String.format("%.2f", d2 / 1000000) + " Million");
-                        } else {
-                            markettv.setText("Market Cap: " + d2);
-                        }
+            }
+            try {
+                JSONObject jsonobj = new JSONObject(result.get(i));
+                if (jsonobj.getString("Status").equals("SUCCESS")) {
+                    TextView symboltv = (TextView) view.findViewById(R.id.symbol);
+                    symboltv.setText(jsonobj.getString("Symbol"));
+                    TextView nametv = (TextView) view.findViewById(R.id.name);
+                    nametv.setText(jsonobj.getString("Name"));
+                    TextView pricetv = (TextView) view.findViewById(R.id.price);
+                    pricetv.setText("$" + jsonobj.getString("LastPrice"));
+                    TextView percenttv = (TextView) view.findViewById(R.id.percent);
+                    Double d = Double.valueOf(jsonobj.getString("ChangePercent"));
+                    if (d > 0) {
+                        percenttv.setBackgroundColor(Color.GREEN);
+                        percenttv.setText("+" + String.format("%.2f", d) + "%");
+                    } else if (d < 0) {
+                        percenttv.setBackgroundColor(Color.RED);
+                        percenttv.setText(String.format("%.2f", d) + "%");
                     }
-
-                } catch (JSONException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    TextView markettv = (TextView) view.findViewById(R.id.marketcap);
+                    Double d2 = Double.valueOf(jsonobj.getString("MarketCap"));
+                    if (d2 >= 1000000000) {
+                        markettv.setText("Market Cap: " + String.format("%.2f", d2 / 1000000000) + " Billion");
+                    } else if (d2 >= 1000000) {
+                        markettv.setText("Market Cap: " + String.format("%.2f", d2 / 1000000) + " Million");
+                    } else {
+                        markettv.setText("Market Cap: " + d2);
+                    }
                 }
+
+            } catch (JSONException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
             return view;
         }

@@ -27,7 +27,7 @@ public class ResultActivity extends AppCompatActivity {
         setSupportActionBar(tb);
 
         Intent intent = getIntent();
-        MyViewPager page = (MyViewPager) findViewById(R.id.page);
+        ViewPager page = (ViewPager) findViewById(R.id.page);
         TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
         FragmentManager manager = getSupportFragmentManager();
         String jsonstring = intent.getStringExtra("quotedetail");

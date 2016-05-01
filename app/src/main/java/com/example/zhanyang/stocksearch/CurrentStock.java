@@ -67,7 +67,7 @@ public class CurrentStock extends Fragment {
                 String lastprice = jobj.getString("LastPrice");
                 Double d1 = Double.valueOf(jobj.getString("Change"));
                 Double d2 = Double.valueOf(jobj.getString("ChangePercent"));
-                String change = String.format("%.2f", d1) + "," + ((d2 > 0) ? "+" : "") + String.format("%.2f", d2);
+                String change = String.format("%.2f", d1) + "(" + ((d2 > 0) ? "+" : "") + String.format("%.2f", d2) +"%)";
                 String timestamp = jobj.getString("Timestamp");
                 String marketCap = jobj.getString("MarketCap");
                 Double mc = Double.valueOf(marketCap);
@@ -79,7 +79,7 @@ public class CurrentStock extends Fragment {
                 String volume = jobj.getString("Volume");
                 Double d3 = Double.valueOf(jobj.getString("ChangeYTD"));
                 Double d4 = Double.valueOf(jobj.getString("ChangePercentYTD"));
-                String changeYTD = String.format("%.2f", d3) + "," + ((d4 > 0) ? "+" : "") + String.format("%.2f", d4);
+                String changeYTD = String.format("%.2f", d3) + "(" + ((d4 > 0) ? "+" : "") + String.format("%.2f", d4) + "%)";
                 String high = jobj.getString("High");
                 String low = jobj.getString("Low");
                 String open = jobj.getString("Open");
@@ -120,9 +120,24 @@ public class CurrentStock extends Fragment {
         String[] theads = new String[]{"NAME", "SYMBOL", "LASTPRICE", "CHANGE", "TIMESTAMP",
                 "MARKETCAP", "VOLUME", "CHANGE YTD", "HIGH", "LOW", "OPEN"};
         List<String> contents;
+        final int WITH_ARROW = 1;
+        final int WITHOUT_ARROW = 0;
 
         public QuoteListViewAdapter(List<String> contents) {
             this.contents = contents;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            if(position == 3 || position == 7){
+                return WITH_ARROW;
+            }
+            return WITHOUT_ARROW;
+        }
+
+        @Override
+        public int getViewTypeCount() {
+            return 2;
         }
 
         @Override
@@ -144,19 +159,25 @@ public class CurrentStock extends Fragment {
         public View getView(int i, View view, ViewGroup viewGroup) {
             if (view == null) {
                 LayoutInflater inflater = getActivity().getLayoutInflater();
-                view = inflater.inflate(R.layout.quotedetails, viewGroup, false);
-                TextView thead = (TextView) view.findViewById(R.id.thead);
-                thead.setText(theads[i]);
-                TextView content = (TextView) view.findViewById(R.id.content);
-                content.setText(contents.get(i));
-                if (i == 3 || i == 7) {
-                    ImageView arrow = (ImageView) view.findViewById(R.id.arrow);
-                    String arrowname = contents.get(11 + i / 4);
-                    if (arrowname.equals("up")) {
-                        arrow.setImageResource(R.drawable.up);
-                    } else if (arrowname.equals("down")) {
-                        arrow.setImageResource(R.drawable.down);
-                    }
+                int type = getItemViewType(i);
+                if(type == WITH_ARROW){
+                    view = inflater.inflate(R.layout.quotedetails, viewGroup, false);
+                }
+                else{
+                    view = inflater.inflate(R.layout.quotedetails_woarrow, viewGroup, false);
+                }
+            }
+            TextView thead = (TextView) view.findViewById(R.id.thead);
+            thead.setText(theads[i]);
+            TextView content = (TextView) view.findViewById(R.id.content);
+            content.setText(contents.get(i));
+            if (i == 3 || i == 7) {
+                ImageView arrow = (ImageView) view.findViewById(R.id.arrow);
+                String arrowname = contents.get(11 + i / 4);
+                if (arrowname.equals("up")) {
+                    arrow.setImageResource(R.drawable.up);
+                } else if (arrowname.equals("down")) {
+                    arrow.setImageResource(R.drawable.down);
                 }
             }
             return view;
@@ -193,10 +214,8 @@ public class CurrentStock extends Fragment {
 
         @Override
         protected void onPostExecute(Bitmap pic) {
-            PhotoView image = (PhotoView) footer.findViewById(R.id.yahoochart);
+            ImageView image = (ImageView) footer.findViewById(R.id.yahoochart);
             image.setImageBitmap(pic);
-            PhotoViewAttacher mAttacher = new PhotoViewAttacher(image);
-            mAttacher.update();
         }
     }
 }
