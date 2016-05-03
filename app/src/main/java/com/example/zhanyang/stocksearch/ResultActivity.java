@@ -1,6 +1,7 @@
 package com.example.zhanyang.stocksearch;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -12,11 +13,30 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 public class ResultActivity extends AppCompatActivity {
+
+    public Set<String> getFavoriteSymbols() {
+        SharedPreferences prefs = getSharedPreferences("favoritelist", MODE_PRIVATE);
+        Set<String> symbols = prefs.getStringSet("symbol", null);
+        if(symbols == null){
+            symbols = new LinkedHashSet<>();
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putStringSet("symbol", symbols);
+            editor.apply();
+        }
+        return symbols;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +46,17 @@ public class ResultActivity extends AppCompatActivity {
         Toolbar tb = (Toolbar) findViewById(R.id.mytoolbar);
         setSupportActionBar(tb);
 
+        ImageButton back = (ImageButton) findViewById(R.id.back);
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(ResultActivity.this, MainActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        ImageButton star = (ImageButton) findViewById(R.id.star);
+
         Intent intent = getIntent();
         ViewPager page = (ViewPager) findViewById(R.id.page);
         TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
@@ -34,7 +65,34 @@ public class ResultActivity extends AppCompatActivity {
         try {
             JSONObject jobj = new JSONObject(jsonstring);
             Bundle bundle = new Bundle();
-            bundle.putString("symbol", jobj.getString("Symbol"));
+            final String symbol = jobj.getString("Symbol");
+            final String companyname = jobj.getString("Name");
+            final Set<String> symbols = getFavoriteSymbols();
+            if(symbols.contains(symbol)){
+                star.setImageResource(R.drawable.star2);
+                star.setTag(R.drawable.star2);
+            }
+            else{
+                star.setImageResource(R.drawable.star);
+                star.setTag(R.drawable.star);
+            }
+            star.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if((Integer) (view.getTag()) == R.drawable.star){
+                        ((ImageButton)view).setImageResource(R.drawable.star2);
+                        view.setTag(R.drawable.star2);
+                        symbols.add(symbol);
+                        Toast.makeText(ResultActivity.this, "Bookmarked " + companyname + "!!!", Toast.LENGTH_LONG).show();
+                    }
+                    else{
+                        ((ImageButton)view).setImageResource(R.drawable.star);
+                        view.setTag(R.drawable.star);
+                        symbols.remove(symbol);
+                    }
+                }
+            });
+            bundle.putString("symbol", symbol);
             MyPagerAdapter pageadapter = new MyPagerAdapter(manager, bundle);
             page.setAdapter(pageadapter);
             tabs.setupWithViewPager(page);
@@ -44,23 +102,6 @@ public class ResultActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.back:
-                //go back
-                return true;
-
-            case R.id.star:
-                return true;
-
-            case R.id.facebook:
-                return true;
-
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
 
     private class MyPagerAdapter extends FragmentStatePagerAdapter {
         Bundle data;

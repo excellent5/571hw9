@@ -3,6 +3,7 @@ package com.example.zhanyang.stocksearch;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -124,11 +125,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public Set<String> getFavoriteSymbols() {
-//        SharedPreferences prefs = getSharedPreferences("favoritelist", MODE_PRIVATE);
-//        Set<String> symbols = prefs.getStringSet("symbol", null);
-        Set<String> symbols = new LinkedHashSet<>();
-        symbols.add("AAPL");
-        symbols.add("FB");
+        SharedPreferences prefs = getSharedPreferences("favoritelist", MODE_PRIVATE);
+        Set<String> symbols = prefs.getStringSet("symbol", null);
+        if(symbols == null){
+            symbols = new LinkedHashSet<>();
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putStringSet("symbol", symbols);
+            editor.apply();
+        }
         return symbols;
     }
 
@@ -336,6 +340,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             builder.create().show();
+            getFavoriteSymbols().remove(symbol);
         }
 
         @Override
@@ -368,7 +373,8 @@ public class MainActivity extends AppCompatActivity {
                     TextView nametv = (TextView) view.findViewById(R.id.name);
                     nametv.setText(jsonobj.getString("Name"));
                     TextView pricetv = (TextView) view.findViewById(R.id.price);
-                    pricetv.setText("$" + jsonobj.getString("LastPrice"));
+                    Float price = Float.valueOf(jsonobj.getString("LastPrice"));
+                    pricetv.setText("$" + String.format("%.2f", price));
                     TextView percenttv = (TextView) view.findViewById(R.id.percent);
                     Double d = Double.valueOf(jsonobj.getString("ChangePercent"));
                     if (d > 0) {

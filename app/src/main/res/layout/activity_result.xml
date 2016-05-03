@@ -13,34 +13,42 @@
 
     <android.support.v7.widget.Toolbar
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
         android:elevation="4dp"
         android:id="@+id/mytoolbar"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        >
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true">
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:layout_marginLeft="-19dp">
 
-                <ImageView
+                <ImageButton
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
+                    android:layout_height="match_parent"
                     android:id="@+id/back"
-                    android:src="@drawable/left"/>
+                    android:src="@drawable/left"
+                    android:layout_gravity="center_vertical"
+                    android:background="@null"/>
 
                 <TextView
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:id="@+id/companyname"
-                    android:text="Facebook Inc."/>
+                    android:text="Facebook Inc."
+                    android:gravity="center_vertical"
+                    android:textSize="20dp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"/>
             </LinearLayout>
 
 
@@ -48,19 +56,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_alignParentRight="true">
+                android:layout_gravity="center_vertical"
+                android:layout_alignParentRight="true"
+                android:layout_marginTop="10dp">
 
-                <ImageView
+                <ImageButton
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:id="@+id/star"
-                    android:src="@drawable/star"/>
+                    android:src="@drawable/star"
+                    android:layout_gravity="center_vertical"
+                    android:background="@null"/>
 
-                <ImageView
+                <ImageButton
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:id="@+id/facebook"
-                    android:src="@drawable/facebook"/>
+                    android:src="@drawable/facebook"
+                    android:layout_gravity="center_vertical"
+                    android:layout_alignParentRight="true"
+                    android:background="@null"/>
             </LinearLayout>
         </RelativeLayout>
     </android.support.v7.widget.Toolbar>
