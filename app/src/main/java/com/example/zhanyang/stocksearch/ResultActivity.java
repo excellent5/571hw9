@@ -2,6 +2,8 @@ package com.example.zhanyang.stocksearch;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.Image;
+import android.net.Uri;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -16,7 +18,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.share.Sharer;
+import com.facebook.share.model.ShareLinkContent;
+import com.facebook.share.widget.ShareButton;
+import com.facebook.share.widget.ShareDialog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,6 +37,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class ResultActivity extends AppCompatActivity {
+    CallbackManager callbackManager;
 
     public Set<String> getFavoriteSymbols() {
         SharedPreferences prefs = getSharedPreferences("favoritelist", MODE_PRIVATE);
@@ -67,6 +80,7 @@ public class ResultActivity extends AppCompatActivity {
             Bundle bundle = new Bundle();
             final String symbol = jobj.getString("Symbol");
             final String companyname = jobj.getString("Name");
+            final Double price = jobj.getDouble("LastPrice");
             final Set<String> symbols = getFavoriteSymbols();
             if(symbols.contains(symbol)){
                 star.setImageResource(R.drawable.star2);
@@ -76,6 +90,9 @@ public class ResultActivity extends AppCompatActivity {
                 star.setImageResource(R.drawable.star);
                 star.setTag(R.drawable.star);
             }
+            TextView company = (TextView) findViewById(R.id.companyname);
+            company.setText(companyname);
+
             star.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -92,6 +109,44 @@ public class ResultActivity extends AppCompatActivity {
                     }
                 }
             });
+
+            FacebookSdk.sdkInitialize(getApplicationContext());
+            callbackManager = CallbackManager.Factory.create();
+            final ShareDialog shareDialog = new ShareDialog(this);
+            shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
+
+                @Override
+                public void onSuccess(Sharer.Result result) {
+                    Toast.makeText(ResultActivity.this, "You shared this post.", Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onError(FacebookException error) {
+                    Toast.makeText(ResultActivity.this, "Whoops! Error happens!", Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onCancel() {
+                    Toast.makeText(ResultActivity.this, "You canceled sharing.", Toast.LENGTH_LONG).show();
+                }
+            });
+
+            ImageButton fb = (ImageButton) findViewById(R.id.facebook);
+            fb.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(shareDialog.canShow(ShareLinkContent.class)){
+                        ShareLinkContent content = new ShareLinkContent.Builder()
+                                .setContentUrl(Uri.parse("http://dev.markitondemand.com"))
+                                .setImageUrl(Uri.parse("http://chart.finance.yahoo.com/t?s=" + symbol + "&lang=en-US&width=400&height=400"))
+                                .setContentDescription("Stock Information of " + companyname + " (" + symbol + ")")
+                                .setContentTitle("Current Stock Price of " + companyname + " is $" + String.format("%.2f", price))
+                                .build();
+                        shareDialog.show(content);
+                    }
+                }
+            });
+
             bundle.putString("symbol", symbol);
             MyPagerAdapter pageadapter = new MyPagerAdapter(manager, bundle);
             page.setAdapter(pageadapter);
@@ -100,6 +155,12 @@ public class ResultActivity extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
 

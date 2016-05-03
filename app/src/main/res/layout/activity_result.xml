@@ -44,7 +44,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:id="@+id/companyname"
-                    android:text="Facebook Inc."
                     android:gravity="center_vertical"
                     android:textSize="20dp"
                     android:textColor="#FFFFFF"

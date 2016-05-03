@@ -373,7 +373,7 @@ public class MainActivity extends AppCompatActivity {
                     TextView nametv = (TextView) view.findViewById(R.id.name);
                     nametv.setText(jsonobj.getString("Name"));
                     TextView pricetv = (TextView) view.findViewById(R.id.price);
-                    Float price = Float.valueOf(jsonobj.getString("LastPrice"));
+                    Double price = jsonobj.getDouble("LastPrice");
                     pricetv.setText("$" + String.format("%.2f", price));
                     TextView percenttv = (TextView) view.findViewById(R.id.percent);
                     Double d = Double.valueOf(jsonobj.getString("ChangePercent"));
