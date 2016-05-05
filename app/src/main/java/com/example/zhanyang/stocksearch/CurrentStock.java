@@ -1,5 +1,6 @@
 package com.example.zhanyang.stocksearch;
 
+import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -9,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -21,10 +23,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.co.senab.photoview.PhotoView;
 import uk.co.senab.photoview.PhotoViewAttacher;
 
 
@@ -69,6 +72,10 @@ public class CurrentStock extends Fragment {
                 Double d2 = Double.valueOf(jobj.getString("ChangePercent"));
                 String change = String.format("%.2f", d1) + "(" + ((d2 > 0) ? "+" : "") + String.format("%.2f", d2) +"%)";
                 String timestamp = jobj.getString("Timestamp");
+                SimpleDateFormat in = new SimpleDateFormat("EEE MMMM d HH:mm:ss 'UTC-04:00' yyyy");
+                SimpleDateFormat out = new SimpleDateFormat("dd MMMM yyyy, HH:mm:ss");
+                String date = out.format(in.parse(timestamp));
+                Log.e("Transformed date", date);
                 String marketCap = jobj.getString("MarketCap");
                 Double mc = Double.valueOf(marketCap);
                 if (mc >= 1000000000) {
@@ -87,7 +94,7 @@ public class CurrentStock extends Fragment {
                 contents.add(stocksymbol);
                 contents.add(lastprice);
                 contents.add(change);
-                contents.add(timestamp);
+                contents.add(date);
                 contents.add(marketCap);
                 contents.add(volume);
                 contents.add(changeYTD);
@@ -102,15 +109,15 @@ public class CurrentStock extends Fragment {
                     contents.add("");
                 }
 
-                if (d3 > 0) {
+                if (d4 > 0) {
                     contents.add("up");
-                } else if (d3 < 0) {
+                } else if (d4 < 0) {
                     contents.add("down");
                 } else {
                     contents.add("");
                 }
                 lv.setAdapter(new QuoteListViewAdapter(contents));
-            } catch (JSONException e) {
+            } catch (JSONException | ParseException e) {
                 e.printStackTrace();
             }
         }
@@ -198,7 +205,7 @@ public class CurrentStock extends Fragment {
             HttpURLConnection urlConnection = null;
             Bitmap pic = null;
             try {
-                URL url = new URL("http://chart.finance.yahoo.com/t?s=" + strings[0] + "&lang=en-US&height=600&width=800");
+                URL url = new URL("http://chart.finance.yahoo.com/t?s=" + strings[0] + "&lang=en-US&height=500&width=900");
                 urlConnection = (HttpURLConnection) url.openConnection();
                 InputStream is = urlConnection.getInputStream();
                 BitmapFactory.Options options = new BitmapFactory.Options();
@@ -213,9 +220,24 @@ public class CurrentStock extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(Bitmap pic) {
-            ImageView image = (ImageView) footer.findViewById(R.id.yahoochart);
+        protected void onPostExecute(final Bitmap pic) {
+            final ImageView image = (ImageView) footer.findViewById(R.id.yahoochart);;
             image.setImageBitmap(pic);
+            image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Dialog d = new Dialog(getActivity());
+                    d.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+                    ImageView popupimage = new ImageView(getActivity());
+                    popupimage.setMinimumWidth(900);
+                    popupimage.setMinimumHeight(500);
+                    popupimage.setImageBitmap(pic);
+                    PhotoViewAttacher mAttacher = new PhotoViewAttacher(popupimage);
+                    d.setContentView(popupimage);
+                    d.show();
+                }
+            });
+
         }
     }
 }

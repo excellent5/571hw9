@@ -18,6 +18,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
 
 public class News extends Fragment {
 
@@ -91,19 +94,25 @@ public class News extends Fragment {
             try{
                 TextView title = (TextView) view.findViewById(R.id.newstitle);
                 title.setMovementMethod(LinkMovementMethod.getInstance());
-                String titlestring = contents.getJSONObject(i).getString("Title");
-                String url = contents.getJSONObject(i).getString("Url");
-                String html = String.format("<a href = \"%s\"><u><font color = \"black\">%s</font></u></a>", url, titlestring);
+                JSONObject currentdata = contents.getJSONObject(i);
+                String titlestring = currentdata.getString("Title");
+                String url = currentdata.getString("Url");
+                String html = String.format("<a href = \"%s\"><u>%s</u></a>", url, titlestring);
                 title.setText(Html.fromHtml(html));
                 title.setTextColor(Color.BLACK);
                 TextView content = (TextView) view.findViewById(R.id.newscontent);
-                content.setText(contents.getJSONObject(i).getString("Description"));
+                content.setText(currentdata.getString("Description"));
                 TextView publisher = (TextView) view.findViewById(R.id.publisher);
-                publisher.setText(contents.getJSONObject(i).getString("Source"));
+                publisher.setText("Publisher: "+ currentdata.getString("Source"));
                 TextView date = (TextView) view.findViewById(R.id.date);
-                date.setText(contents.getJSONObject(i).getString("Date"));
+                String datestring = currentdata.getString("Date");
+                SimpleDateFormat in = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                SimpleDateFormat out = new SimpleDateFormat("dd MMMM yyyy, HH:mm:ss");
+                date.setText("Date: " + out.format(in.parse(datestring)));
             }
             catch (JSONException e){
+                e.printStackTrace();
+            } catch (ParseException e) {
                 e.printStackTrace();
             }
             return view;

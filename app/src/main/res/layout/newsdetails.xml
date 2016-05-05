@@ -9,21 +9,25 @@
         android:layout_height="match_parent"
         android:id="@+id/newstitle"
         android:textSize="22sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textColorLink="#000000"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/newscontent"/>
+        android:id="@+id/newscontent"
+        android:layout_marginTop="3dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/publisher"/>
+        android:id="@+id/publisher"
+        android:layout_marginTop="3dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/date"/>
+        android:id="@+id/date"
+        android:layout_marginTop="3dp"/>
 
 </LinearLayout>

@@ -2,22 +2,18 @@ package com.example.zhanyang.stocksearch;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.Image;
 import android.net.Uri;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,28 +23,32 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.share.Sharer;
 import com.facebook.share.model.ShareLinkContent;
-import com.facebook.share.widget.ShareButton;
 import com.facebook.share.widget.ShareDialog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ResultActivity extends AppCompatActivity {
     CallbackManager callbackManager;
 
-    public Set<String> getFavoriteSymbols() {
+    public List<String> getFavoriteSymbols() {
         SharedPreferences prefs = getSharedPreferences("favoritelist", MODE_PRIVATE);
-        Set<String> symbols = prefs.getStringSet("symbol", null);
+        String symbols = prefs.getString("symbol", null);
         if(symbols == null){
-            symbols = new LinkedHashSet<>();
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putStringSet("symbol", symbols);
-            editor.apply();
+            return new LinkedList<>();
         }
-        return symbols;
+        return new LinkedList<>(Arrays.asList(symbols.split(",")));
+    }
+
+    public void store2DB(List<String> symbols){
+        SharedPreferences prefs = getSharedPreferences("favoritelist", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("symbol", TextUtils.join(",", symbols));
+        editor.apply();
     }
 
     @Override
@@ -71,7 +71,8 @@ public class ResultActivity extends AppCompatActivity {
         ImageButton star = (ImageButton) findViewById(R.id.star);
 
         Intent intent = getIntent();
-        ViewPager page = (ViewPager) findViewById(R.id.page);
+        MyViewPager page = (MyViewPager)findViewById(R.id.page);
+        page.setPagingEnabled(false);
         TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
         FragmentManager manager = getSupportFragmentManager();
         String jsonstring = intent.getStringExtra("quotedetail");
@@ -81,7 +82,7 @@ public class ResultActivity extends AppCompatActivity {
             final String symbol = jobj.getString("Symbol");
             final String companyname = jobj.getString("Name");
             final Double price = jobj.getDouble("LastPrice");
-            final Set<String> symbols = getFavoriteSymbols();
+            final List<String> symbols = getFavoriteSymbols();
             if(symbols.contains(symbol)){
                 star.setImageResource(R.drawable.star2);
                 star.setTag(R.drawable.star2);
@@ -100,12 +101,14 @@ public class ResultActivity extends AppCompatActivity {
                         ((ImageButton)view).setImageResource(R.drawable.star2);
                         view.setTag(R.drawable.star2);
                         symbols.add(symbol);
+                        store2DB(symbols);
                         Toast.makeText(ResultActivity.this, "Bookmarked " + companyname + "!!!", Toast.LENGTH_LONG).show();
                     }
                     else{
                         ((ImageButton)view).setImageResource(R.drawable.star);
                         view.setTag(R.drawable.star);
                         symbols.remove(symbol);
+                        store2DB(symbols);
                     }
                 }
             });
@@ -137,7 +140,7 @@ public class ResultActivity extends AppCompatActivity {
                 public void onClick(View view) {
                     if(shareDialog.canShow(ShareLinkContent.class)){
                         ShareLinkContent content = new ShareLinkContent.Builder()
-                                .setContentUrl(Uri.parse("http://dev.markitondemand.com"))
+                                .setContentUrl(Uri.parse("http://finance.yahoo.com/q?s=" + symbol))
                                 .setImageUrl(Uri.parse("http://chart.finance.yahoo.com/t?s=" + symbol + "&lang=en-US&width=400&height=400"))
                                 .setContentDescription("Stock Information of " + companyname + " (" + symbol + ")")
                                 .setContentTitle("Current Stock Price of " + companyname + " is $" + String.format("%.2f", price))
@@ -163,7 +166,6 @@ public class ResultActivity extends AppCompatActivity {
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
-
     private class MyPagerAdapter extends FragmentStatePagerAdapter {
         Bundle data;
 
@@ -175,7 +177,6 @@ public class ResultActivity extends AppCompatActivity {
         @Override
         public Fragment getItem(int position) {
             Fragment selectedfrag = null;
-            Log.e("Clicked Position", String.valueOf(position));
             if (position == 0) {
                 selectedfrag = new CurrentStock();
             } else if(position == 1){

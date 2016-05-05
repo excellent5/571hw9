@@ -9,47 +9,28 @@ import android.view.MotionEvent;
  * Created by zhanyang on 4/30/16.
  */
 public class MyViewPager extends ViewPager {
-
-    private boolean isLocked;
-
-    public MyViewPager(Context context) {
-        super(context);
-        isLocked = false;
-    }
+    private boolean enabled;
 
     public MyViewPager(Context context, AttributeSet attrs) {
         super(context, attrs);
-        isLocked = false;
-    }
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        if (!isLocked) {
-            try {
-                return super.onInterceptTouchEvent(ev);
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-        return false;
+        this.enabled = true;
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return !isLocked && super.onTouchEvent(event);
+        return enabled && super.onTouchEvent(event);
     }
 
-    public void toggleLock() {
-        isLocked = !isLocked;
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent event) {
+        return enabled && super.onInterceptTouchEvent(event);
     }
 
-    public void setLocked(boolean isLocked) {
-        this.isLocked = isLocked;
+    public void setPagingEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
-    public boolean isLocked() {
-        return isLocked;
+    public boolean isPagingEnabled() {
+        return enabled;
     }
-
 }

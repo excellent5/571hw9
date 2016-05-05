@@ -11,6 +11,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,9 +33,12 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
 
 public class MainActivity extends AppCompatActivity {
     private Handler myhandler = new Handler();
@@ -65,10 +69,15 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        favoritelist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                TextView symbol = (TextView) view.findViewById(R.id.symbol);
+                new QuotesTask().execute(symbol.getText().toString());
+            }
+        });
 
-        final FavoritelistTask loadfavoritetask = new FavoritelistTask(favoritelist);
-        loadfavoritetask.execute(getFavoriteSymbols());
-
+        new FavoritelistTask(favoritelist).execute(getFavoriteSymbols());
 
         Switch autorefresh = (Switch) findViewById(R.id.autofresh);
         autorefresh.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -78,10 +87,9 @@ public class MainActivity extends AppCompatActivity {
                     mytask = new Runnable() {
                         @Override
                         public void run() {
-                            loadfavoritetask.execute(getFavoriteSymbols());
+                            new FavoritelistTask(favoritelist).execute(getFavoriteSymbols());
                         }
                     };
-                    myhandler.postDelayed(mytask, 10000);
                 } else {
                     myhandler.removeCallbacks(mytask);
                 }
@@ -92,11 +100,7 @@ public class MainActivity extends AppCompatActivity {
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                FavoriteListAdapter myadapter = (FavoriteListAdapter) favoritelist.getAdapter();
-//                List<String> adapterdata = myadapter.getAdapterData();
-//                adapterdata.set(0, "{\"Status\":\"SUCCESS\",\"Name\":\"Apple Inc\",\"Symbol\":\"AAPL\",\"LastPrice\":120.00,\"ChangePercent\":0.0921319329279476,\"MarketCap\":602363497120}");
-//                myadapter.notifyDataSetChanged();
-                loadfavoritetask.execute(getFavoriteSymbols());
+                new FavoritelistTask(favoritelist).execute(getFavoriteSymbols());
             }
         });
 
@@ -111,7 +115,23 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        Button clear = (Button) findViewById(R.id.clear);
+        clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                textView.setText("");
+            }
+        });
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mytask != null)
+            myhandler.removeCallbacks(mytask);
+    }
+
 
     public void showDialog(String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -124,16 +144,20 @@ public class MainActivity extends AppCompatActivity {
         builder.create().show();
     }
 
-    public Set<String> getFavoriteSymbols() {
+    public List<String> getFavoriteSymbols() {
         SharedPreferences prefs = getSharedPreferences("favoritelist", MODE_PRIVATE);
-        Set<String> symbols = prefs.getStringSet("symbol", null);
+        String symbols = prefs.getString("symbol", null);
         if(symbols == null){
-            symbols = new LinkedHashSet<>();
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putStringSet("symbol", symbols);
-            editor.apply();
+            return new LinkedList<>();
         }
-        return symbols;
+        return new LinkedList<>(Arrays.asList(symbols.split(",")));
+    }
+
+    public void store2DB(List<String> symbols){
+        SharedPreferences prefs = getSharedPreferences("favoritelist", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("symbol", TextUtils.join(",", symbols));
+        editor.apply();
     }
 
     public static String getHttpResponse(String urlstring) {
@@ -198,6 +222,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 protected FilterResults performFiltering(CharSequence charSequence) {
                     FilterResults fr = new FilterResults();
+                    stocklist.clear();
                     if (charSequence != null && charSequence.length() >= 3) {
                         String response = getHttpResponse("http://ec2-52-25-115-38.us-west-2.compute.amazonaws.com/571hw8/proxy.php?lookupsymbol="
                                 + charSequence);
@@ -251,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             try {
                 JSONObject jobj = new JSONObject(result);
-                if (jobj.getString("Status").equals("SUCCESS")) {
+                if (jobj.has("Status") && jobj.getString("Status").equals("SUCCESS")) {
                     Intent intent = new Intent(MainActivity.this, ResultActivity.class);
                     intent.putExtra("quotedetail", result);
                     startActivity(intent);
@@ -264,7 +289,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class FavoritelistTask extends AsyncTask<Set<String>, Void, List<String>> {
+    private class FavoritelistTask extends AsyncTask<List<String>, Void, List<String>> {
 
         String urlstring = "http://ec2-52-25-115-38.us-west-2.compute.amazonaws.com/571hw8/proxy.php?stocksymbol=";
         DynamicListView lv;
@@ -274,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected List<String> doInBackground(Set<String>... params) {
+        protected List<String> doInBackground(List<String>... params) {
             ArrayList<String> jsonresults = new ArrayList<>();
             for (String symbol : params[0]) {
                 jsonresults.add(getHttpResponse(urlstring + symbol));
@@ -296,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
         FavoriteListAdapter adapter;
         List<String> result;
 
-        public RemoveFavoriteListener(String name, String symbol, int position, FavoriteListAdapter adapter, List<String> result){
+        public RemoveFavoriteListener(String name, String symbol, int position, FavoriteListAdapter adapter, List<String> result) {
             this.name = name;
             this.symbol = symbol;
             this.position = position;
@@ -306,7 +331,9 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onClick(DialogInterface dialogInterface, int i) {
-            getFavoriteSymbols().remove(symbol);
+            List<String> symbols = getFavoriteSymbols();
+            symbols.remove(symbol);
+            store2DB(symbols);
             result.remove(position);
             adapter.notifyDataSetChanged();
             dialogInterface.cancel();
@@ -320,7 +347,7 @@ public class MainActivity extends AppCompatActivity {
             this.result = result;
         }
 
-        public void remove(final int position){
+        public void remove(final int position) {
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
             String name = "Unknown";
             String symbol = "";
@@ -328,19 +355,17 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject jsonobj = new JSONObject(result.get(position));
                 name = jsonobj.getString("Name");
                 symbol = jsonobj.getString("Symbol");
-            }
-            catch (JSONException e){
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
             builder.setMessage("Want to delete " + name + " from favorites?");
             builder.setPositiveButton("OK", new RemoveFavoriteListener(name, symbol, position, this, result))
-            .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) {
-                    dialog.cancel();
-                }
-            });
+                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    });
             builder.create().show();
-            getFavoriteSymbols().remove(symbol);
         }
 
         @Override
